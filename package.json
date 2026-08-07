@@ -1,0 +1,16 @@
+{
+  "name": "medguide-ai",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "A local-first AI health guidance MVP with accounts, saved checks, and server-side AI.",
+  "scripts": {
+    "dev": "node --watch server.mjs",
+    "start": "node server.mjs",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {}
+}
