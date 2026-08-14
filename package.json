@@ -1,16 +1,24 @@
 {
   "name": "medguide-ai",
-  "version": "1.0.0",
+  "version": "2.2.0",
   "private": true,
   "type": "module",
-  "description": "A local-first AI health guidance MVP with accounts, saved checks, and server-side AI.",
+  "description": "A native-MongoDB MVC health guidance app with one-time onboarding, comparison patterns, saved checks, and server-side OpenRouter AI.",
   "scripts": {
     "dev": "node --watch server.mjs",
     "start": "node server.mjs",
-    "test": "node --test"
+    "test": "node --test",
+    "test:watch": "node --test --watch",
+    "db:check": "node scripts/check-mongodb.mjs",
+    "db:view": "node scripts/view-database.mjs",
+    "db:migrate": "node scripts/migrate-json-to-mongodb.mjs"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=20.19.0"
   },
-  "dependencies": {}
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "mongoose": "^9.9.1"
+  }
 }

@@ -469,6 +469,43 @@
       gap: 14px
     }
 
+    .other-matches-heading {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 20px;
+      padding: 6px 2px 0
+    }
+
+    .other-matches-heading strong {
+      display: block;
+      font-size: 15px;
+      color: var(--txt)
+    }
+
+    .other-matches-heading span {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 12.5px;
+      line-height: 1.45
+    }
+
+    .match-count {
+      flex-shrink: 0;
+      border: 1px solid #cbd5e1;
+      background: #fff;
+      color: #475569;
+      border-radius: 999px;
+      padding: 5px 10px;
+      font-size: 11px;
+      font-weight: 700
+    }
+
+    .cc.secondary-match {
+      border-left: 3px solid #cbd5e1
+    }
+
     .cc {
       background: var(--sur);
       border: 1px solid var(--bdr);
@@ -1665,6 +1702,153 @@
       text-align: center
     }
 
+    /* One-time product tour */
+    .tour-layer {
+      position: fixed;
+      inset: 0;
+      z-index: 5000;
+      pointer-events: auto
+    }
+
+    .tour-layer[hidden] {
+      display: none
+    }
+
+    .tour-layer.no-target {
+      background: rgba(15, 23, 42, .72)
+    }
+
+    .tour-spotlight {
+      position: fixed;
+      z-index: 5001;
+      border: 2px solid #93c5fd;
+      border-radius: 14px;
+      box-shadow: 0 0 0 9999px rgba(15, 23, 42, .72), 0 0 0 6px rgba(59, 130, 246, .2);
+      pointer-events: none;
+      transition: left .22s ease, top .22s ease, width .22s ease, height .22s ease
+    }
+
+    .tour-layer.no-target .tour-spotlight {
+      display: none
+    }
+
+    .tour-card {
+      position: fixed;
+      z-index: 5002;
+      width: min(390px, calc(100vw - 28px));
+      border: 1px solid #dbeafe;
+      border-radius: 18px;
+      background: #fff;
+      box-shadow: 0 24px 70px rgba(15, 23, 42, .28);
+      padding: 22px;
+      color: var(--txt)
+    }
+
+    .tour-card.centered {
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%)
+    }
+
+    .tour-topline,
+    .tour-actions,
+    .tour-progress {
+      display: flex;
+      align-items: center
+    }
+
+    .tour-topline {
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 16px
+    }
+
+    .tour-step-label {
+      color: var(--acc);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .09em;
+      text-transform: uppercase
+    }
+
+    .tour-skip {
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      font: 600 12px 'Inter', sans-serif;
+      cursor: pointer;
+      padding: 5px
+    }
+
+    .tour-skip:hover,
+    .tour-skip:focus-visible {
+      color: var(--txt)
+    }
+
+    .tour-title {
+      margin: 0 0 9px;
+      font-size: 21px;
+      line-height: 1.25
+    }
+
+    .tour-copy {
+      margin: 0;
+      color: #475569;
+      font-size: 14px;
+      line-height: 1.6
+    }
+
+    .tour-progress {
+      gap: 6px;
+      margin-top: 20px
+    }
+
+    .tour-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #cbd5e1
+    }
+
+    .tour-dot.active {
+      width: 20px;
+      border-radius: 99px;
+      background: var(--acc)
+    }
+
+    .tour-actions {
+      justify-content: flex-end;
+      gap: 9px;
+      margin-top: 18px
+    }
+
+    .tour-button {
+      border: 1px solid var(--bdr);
+      border-radius: 10px;
+      background: #fff;
+      color: var(--txt);
+      padding: 10px 15px;
+      font: 700 13px 'Inter', sans-serif;
+      cursor: pointer
+    }
+
+    .tour-button.primary {
+      border-color: var(--acc);
+      background: var(--acc);
+      color: #fff
+    }
+
+    .tour-button:disabled {
+      opacity: .45;
+      cursor: default
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .tour-spotlight {
+        transition: none
+      }
+    }
+
     @media (max-width: 680px) {
       body {
         display: block
@@ -1753,6 +1937,21 @@
       .ttl {
         font-size: 19px
       }
+
+      .tour-card:not(.centered) {
+        left: 14px !important;
+        right: 14px;
+        bottom: 14px;
+        top: auto !important;
+        width: auto;
+        transform: none !important
+      }
+
+      .other-matches-heading {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 8px
+      }
     }
   </style>
 </head>
@@ -1766,6 +1965,7 @@
           </svg></div>
         <div>
           <div class="auth-title">MedGuide AI</div>
+          <div class="brand-sub">Private MVP</div>
         </div>
       </div>
       <p class="auth-copy">Sign in to keep your profile and symptom checks attached to your account. This tool gives
@@ -1793,6 +1993,8 @@
             type="password" autocomplete="new-password" required minlength="8" maxlength="200" /></div>
         <button class="btn-p" type="submit">Create Account</button>
       </form>
+      <p class="account-note">Use test details for this MVP. Passwords are hashed; sessions use secure HTTP-only
+        cookies.</p>
     </div>
   </section>
 
@@ -1879,12 +2081,12 @@
                 <textarea id="sym-in"
                   placeholder="e.g. I have a persistent headache, feel fatigued, and noticed a slight fever since yesterday morning..."></textarea>
               </div>
-              <button class="btn-p" onclick="analyze()">Analyze Symptoms Now</button>
+              <button class="btn-p" id="analyze-button" onclick="analyze()">Analyze Symptoms Now</button>
             </div>
 
             <!-- RIGHT OPTIONS & QUICK ADD SIDEBAR COLUMN -->
             <div class="input-side-col">
-              <div class="card">
+              <div class="card" id="severity-panel">
                 <div class="lbl">Symptom Severity</div>
                 <div class="sev-row">
                   <button class="sev mild on" onclick="setSev(this,'mild')">Mild</button>
@@ -2216,7 +2418,7 @@
             <div class="card" style="background:#f8fafc">
               <div class="lbl">Privacy note</div>
               <p style="font-size:13px;color:var(--muted);line-height:1.6">Profile details and check history stay in
-                this app's private server data file. Do not use real patient data until you have reviewed the hosting,
+                this app's configured MongoDB database. Do not use real patient data until you have reviewed the hosting,
                 privacy, and compliance requirements for your region.</p>
             </div>
           </div>
@@ -2261,6 +2463,24 @@
       </div>
     </div>
   </div>
+
+  <section class="tour-layer no-target" id="product-tour" hidden aria-hidden="true">
+    <div class="tour-spotlight" id="tour-spotlight" aria-hidden="true"></div>
+    <div class="tour-card centered" id="tour-card" role="dialog" aria-modal="true" aria-labelledby="tour-title"
+      aria-describedby="tour-copy">
+      <div class="tour-topline">
+        <span class="tour-step-label" id="tour-step-label">Getting started</span>
+        <button class="tour-skip" id="tour-skip" type="button">Skip tour</button>
+      </div>
+      <h2 class="tour-title" id="tour-title">Welcome to MedGuide AI</h2>
+      <p class="tour-copy" id="tour-copy"></p>
+      <div class="tour-progress" id="tour-progress" aria-hidden="true"></div>
+      <div class="tour-actions">
+        <button class="tour-button" id="tour-back" type="button">Back</button>
+        <button class="tour-button primary" id="tour-next" type="button">Next</button>
+      </div>
+    </div>
+  </section>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 

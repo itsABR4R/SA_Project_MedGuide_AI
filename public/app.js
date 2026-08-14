@@ -5,11 +5,59 @@ const state = {
   severity: 'mild',
   explainMode: 'simple',
   chatHistory: [],
-  aiConfigured: false
+  aiConfigured: false,
+  tourActive: false,
+  tourIndex: 0,
+  tourCompleting: false
 };
 
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
+
+const productTourSteps = [
+  {
+    title: 'Welcome to MedGuide AI',
+    copy: 'Your account is ready. This short tour shows where to enter symptoms, compare possible patterns, ask follow-up questions, review history, and update your profile.'
+  },
+  {
+    tab: 'symptom',
+    target: '#sym-in',
+    title: 'Describe what you are feeling',
+    copy: 'Add the symptoms, when they started, and what makes them better or worse. More context helps the AI return clearer informational guidance.'
+  },
+  {
+    tab: 'symptom',
+    target: '#severity-panel',
+    title: 'Set the current severity',
+    copy: 'Choose mild, moderate, or severe based on how you feel now. You can also use quick tags beside this panel.'
+  },
+  {
+    tab: 'symptom',
+    target: '#analyze-button',
+    title: 'Create your guidance report',
+    copy: 'Select Analyze Symptoms Now. The report opens the closest pattern first and shows 2–3 lower matches underneath for comparison—not as diagnoses.'
+  },
+  {
+    tab: 'chat',
+    target: '#nav-chat',
+    title: 'Ask a follow-up question',
+    copy: 'Use the AI Health Assistant for general explanations about your report. It cannot diagnose you or replace a clinician.'
+  },
+  {
+    tab: 'history',
+    target: '#nav-history',
+    title: 'Return to previous checks',
+    copy: 'Every completed symptom check is saved privately to your account. Open an earlier report here or delete it when you no longer need it.'
+  },
+  {
+    tab: 'profile',
+    target: '#nav-profile',
+    title: 'Keep your profile current',
+    copy: 'Optional age, blood type, and allergy details can give the assistant useful context. Select Finish to begin with the symptom checker.'
+  }
+];
+
+let tourPreviousFocus = null;
 
 class ApiError extends Error {
   constructor(status, code, message) {
@@ -65,6 +113,186 @@ function setFormBusy(form, busy, busyLabel) {
   button.textContent = busy ? busyLabel : button.dataset.label;
 }
 
+function tourTarget(step = productTourSteps[state.tourIndex]) {
+  if (!step?.target) return null;
+  const target = $(step.target);
+  if (!target) return null;
+  const rect = target.getBoundingClientRect();
+  return rect.width > 0 && rect.height > 0 ? target : null;
+}
+
+function renderTourProgress() {
+  const progress = $('#tour-progress');
+  progress.replaceChildren();
+  productTourSteps.forEach((_step, index) => {
+    const dot = createElement('span', `tour-dot${index === state.tourIndex ? ' active' : ''}`);
+    progress.append(dot);
+  });
+}
+
+function positionProductTour() {
+  if (!state.tourActive) return;
+  const layer = $('#product-tour');
+  const card = $('#tour-card');
+  const spotlight = $('#tour-spotlight');
+  const target = tourTarget();
+
+  card.style.left = '';
+  card.style.top = '';
+  card.style.right = '';
+  card.style.bottom = '';
+  card.style.transform = '';
+
+  if (!target) {
+    layer.classList.add('no-target');
+    card.classList.add('centered');
+    return;
+  }
+
+  layer.classList.remove('no-target');
+  card.classList.remove('centered');
+  const rect = target.getBoundingClientRect();
+  const padding = 8;
+  const left = Math.max(8, rect.left - padding);
+  const top = Math.max(8, rect.top - padding);
+  const width = Math.min(window.innerWidth - left - 8, rect.width + padding * 2);
+  const height = Math.min(window.innerHeight - top - 8, rect.height + padding * 2);
+  Object.assign(spotlight.style, {
+    left: `${left}px`,
+    top: `${top}px`,
+    width: `${width}px`,
+    height: `${height}px`
+  });
+
+  if (window.innerWidth <= 680) return;
+
+  const margin = 18;
+  const cardRect = card.getBoundingClientRect();
+  const maxLeft = Math.max(14, window.innerWidth - cardRect.width - 14);
+  let cardLeft = Math.min(Math.max(rect.left, 14), maxLeft);
+  let cardTop;
+  if (rect.bottom + margin + cardRect.height <= window.innerHeight - 14) {
+    cardTop = rect.bottom + margin;
+  } else if (rect.top - margin - cardRect.height >= 14) {
+    cardTop = rect.top - margin - cardRect.height;
+  } else {
+    cardTop = Math.max(14, Math.min(window.innerHeight - cardRect.height - 14, rect.top));
+    if (rect.right + margin + cardRect.width <= window.innerWidth - 14) cardLeft = rect.right + margin;
+  }
+  card.style.left = `${cardLeft}px`;
+  card.style.top = `${cardTop}px`;
+}
+
+function showProductTourStep(index) {
+  if (!state.tourActive) return;
+  state.tourIndex = Math.max(0, Math.min(productTourSteps.length - 1, index));
+  const step = productTourSteps[state.tourIndex];
+  if (step.tab) switchTab(step.tab);
+
+  $('#tour-step-label').textContent = `Step ${state.tourIndex + 1} of ${productTourSteps.length}`;
+  $('#tour-title').textContent = step.title;
+  $('#tour-copy').textContent = step.copy;
+  $('#tour-back').disabled = state.tourIndex === 0 || state.tourCompleting;
+  $('#tour-next').disabled = state.tourCompleting;
+  $('#tour-next').textContent = state.tourIndex === productTourSteps.length - 1 ? 'Finish' : 'Next';
+  $('#tour-skip').disabled = state.tourCompleting;
+  renderTourProgress();
+
+  const target = tourTarget(step);
+  if (target) {
+    const rect = target.getBoundingClientRect();
+    if (rect.top < 12 || rect.bottom > window.innerHeight - 12) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }
+  window.requestAnimationFrame(() => window.requestAnimationFrame(positionProductTour));
+}
+
+function hideProductTour() {
+  const layer = $('#product-tour');
+  state.tourActive = false;
+  state.tourCompleting = false;
+  layer.hidden = true;
+  layer.setAttribute('aria-hidden', 'true');
+  window.removeEventListener('resize', positionProductTour);
+  window.removeEventListener('scroll', positionProductTour, true);
+  tourPreviousFocus?.focus?.();
+  tourPreviousFocus = null;
+}
+
+async function completeProductTour(skipped = false) {
+  if (!state.tourActive || state.tourCompleting) return;
+  state.tourCompleting = true;
+  showProductTourStep(state.tourIndex);
+  try {
+    const payload = await api('/api/onboarding', { method: 'PATCH', body: JSON.stringify({ completed: true }) });
+    state.user = payload.user;
+  } catch (error) {
+    showToast(`The tour closed, but its completion could not be saved: ${error.message}`, true);
+  } finally {
+    hideProductTour();
+    switchTab('symptom');
+    if (!skipped) $('#sym-in')?.focus();
+  }
+}
+
+function startProductTour() {
+  if (state.tourActive || state.user?.onboardingCompleted !== false) return;
+  const layer = $('#product-tour');
+  tourPreviousFocus = document.activeElement;
+  state.tourActive = true;
+  state.tourCompleting = false;
+  layer.hidden = false;
+  layer.setAttribute('aria-hidden', 'false');
+  window.addEventListener('resize', positionProductTour);
+  window.addEventListener('scroll', positionProductTour, true);
+  showProductTourStep(0);
+  window.requestAnimationFrame(() => $('#tour-next')?.focus());
+}
+
+function maybeStartProductTour() {
+  if (state.user?.onboardingCompleted === false) {
+    window.requestAnimationFrame(startProductTour);
+  }
+}
+
+function handleProductTourKeydown(event) {
+  if (!state.tourActive) return false;
+  if (event.key === 'Escape') {
+    event.preventDefault();
+    completeProductTour(true);
+    return true;
+  }
+  if (event.key === 'ArrowRight') {
+    event.preventDefault();
+    if (state.tourIndex === productTourSteps.length - 1) completeProductTour();
+    else showProductTourStep(state.tourIndex + 1);
+    return true;
+  }
+  if (event.key === 'ArrowLeft' && state.tourIndex > 0) {
+    event.preventDefault();
+    showProductTourStep(state.tourIndex - 1);
+    return true;
+  }
+  if (event.key !== 'Tab') return false;
+
+  const focusable = $$('button:not(:disabled)', $('#tour-card'));
+  if (!focusable.length) return true;
+  const first = focusable[0];
+  const last = focusable.at(-1);
+  if (!$('#tour-card').contains(document.activeElement)) {
+    event.preventDefault();
+    first.focus();
+  } else if (event.shiftKey && document.activeElement === first) {
+    event.preventDefault();
+    last.focus();
+  } else if (!event.shiftKey && document.activeElement === last) {
+    event.preventDefault();
+    first.focus();
+  }
+  return true;
+}
+
 function showAuthMode(mode) {
   const login = mode === 'login';
   $('#login-tab').classList.toggle('active', login);
@@ -77,6 +305,7 @@ function showAuthMode(mode) {
 }
 
 function showSignedOut() {
+  if (state.tourActive) hideProductTour();
   state.user = null;
   state.checks = [];
   state.currentCheck = null;
@@ -107,6 +336,7 @@ async function completeSignIn(payload) {
   updateUserUi(0);
   await loadChecks();
   switchTab('symptom');
+  maybeStartProductTour();
 }
 
 function switchTab(name) {
@@ -195,13 +425,23 @@ function renderConditions(conditions) {
   const urgencyClasses = { routine: 'ul', soon: 'um', urgent: 'uh' };
 
   conditions.forEach((condition, index) => {
-    const card = createElement('div', 'cc');
+    if (index === 1) {
+      const heading = createElement('div', 'other-matches-heading');
+      const copy = createElement('div');
+      copy.append(createElement('strong', '', 'Other possible matches'));
+      copy.append(createElement('span', '', 'Lower matches are included for comparison and are not diagnoses.'));
+      const count = conditions.length - 1;
+      heading.append(copy, createElement('div', 'match-count', `${count} lower ${count === 1 ? 'match' : 'matches'}`));
+      list.append(heading);
+    }
+
+    const card = createElement('div', `cc ${index === 0 ? 'primary-match' : 'secondary-match'}`);
     card.id = `condition-${index}`;
 
     const header = createElement('div', 'ch');
     header.tabIndex = 0;
     header.setAttribute('role', 'button');
-    header.setAttribute('aria-expanded', 'false');
+    header.setAttribute('aria-expanded', index === 0 ? 'true' : 'false');
     const toggle = () => {
       const wasOpen = card.classList.contains('open');
       $$('.cc', list).forEach((item) => {
@@ -255,6 +495,7 @@ function renderConditions(conditions) {
     actions.append(sourceButton, chatButton);
     body.append(symptomsSection, explanationSection, actions);
     card.append(header, body);
+    if (index === 0) card.classList.add('open');
     list.append(card);
   });
 }
@@ -512,6 +753,7 @@ async function boot() {
     $('#auth-gate').classList.add('hidden');
     updateUserUi(payload.checkCount);
     await loadChecks();
+    maybeStartProductTour();
   } catch (error) {
     if (error.status !== 401) setFormError('login-error', error.message);
     showSignedOut();
@@ -593,7 +835,15 @@ function bindForms() {
     }
   });
 
+  $('#tour-back').addEventListener('click', () => showProductTourStep(state.tourIndex - 1));
+  $('#tour-next').addEventListener('click', () => {
+    if (state.tourIndex === productTourSteps.length - 1) completeProductTour();
+    else showProductTourStep(state.tourIndex + 1);
+  });
+  $('#tour-skip').addEventListener('click', () => completeProductTour(true));
+
   document.addEventListener('keydown', (event) => {
+    if (handleProductTourKeydown(event)) return;
     if (event.key === 'Escape') closeModal();
   });
 }
@@ -615,4 +865,3 @@ Object.assign(window, {
 });
 
 boot();
-
