@@ -1,0 +1,56 @@
+{
+  "name": "medguide-ai",
+  "version": "4.4.0",
+  "private": true,
+  "type": "module",
+  "description": "A production-structured MERN MVC health guidance application with local MongoDB and server-side OpenRouter AI.",
+  "license": "UNLICENSED",
+  "packageManager": "npm@11.9.0",
+  "scripts": {
+    "dev": "concurrently -k -n client,server -c cyan,green \"npm:dev:client\" \"npm:dev:server\"",
+    "dev:client": "vite --config client/vite.config.js",
+    "dev:server": "node --watch server/index.js",
+    "build": "vite build --config client/vite.config.js",
+    "lint": "eslint . --max-warnings 0",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "start": "npm run build && node server/index.js",
+    "start:server": "node server/index.js",
+    "test": "npm run build && npm run test:server && npm run test:client",
+    "test:server": "node --test test/ai-service.test.js test/app.test.js test/auth-service.test.js test/chat-service.test.js test/config.test.js test/http-middleware.test.js test/models.test.js test/mongo-repository.test.js test/native-mongodb.test.js test/speech-service.test.js",
+    "test:client": "vitest run --config client/vite.config.js",
+    "test:watch": "node --test --watch test/ai-service.test.js test/app.test.js test/auth-service.test.js test/chat-service.test.js test/config.test.js test/http-middleware.test.js test/models.test.js test/mongo-repository.test.js test/native-mongodb.test.js",
+    "check": "npm run lint && npm run format:check && npm test",
+    "db:check": "node scripts/check-mongodb.js",
+    "db:view": "node scripts/view-database.js",
+    "db:migrate": "node scripts/migrate-json-to-mongodb.js"
+  },
+  "engines": {
+    "node": ">=20.19.0",
+    "npm": ">=10.8.0"
+  },
+  "dependencies": {
+    "compression": "^1.8.1",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "mongoose": "^9.9.1",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
+    "@vitejs/plugin-react": "^5.1.4",
+    "concurrently": "^9.2.1",
+    "eslint": "^10.8.1",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.4",
+    "globals": "^17.11.0",
+    "jsdom": "^28.0.0",
+    "prettier": "^3.9.6",
+    "vite": "^7.3.1",
+    "vitest": "^4.0.18"
+  }
+}
