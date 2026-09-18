@@ -3,6 +3,12 @@
   "buildCommand": "npm run build:vercel",
   "outputDirectory": "public",
   "installCommand": "npm ci",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/app.js"
+    }
+  ],
   "headers": [
     {
       "source": "/(.*)",
