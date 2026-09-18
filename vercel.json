@@ -5,8 +5,12 @@
   "installCommand": "npm ci",
   "rewrites": [
     {
-      "source": "/(.*)",
-      "destination": "/app.js"
+      "source": "/api/(.*)",
+      "destination": "/api"
+    },
+    {
+      "source": "/((?!api|assets).*)",
+      "destination": "/index.html"
     }
   ],
   "headers": [
