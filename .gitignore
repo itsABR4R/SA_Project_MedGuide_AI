@@ -1,0 +1,9 @@
+node_modules/
+client/dist/
+public/
+.env
+data/*.json
+data/*.tmp
+coverage/
+*.log
+.DS_Store
