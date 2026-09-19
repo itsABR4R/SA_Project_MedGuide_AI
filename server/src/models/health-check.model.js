@@ -39,7 +39,7 @@ export const healthCheckSchema = new Schema(
     accountType: { type: String, enum: ['registered', 'guest'], default: 'registered' },
     symptoms: { type: String, default: '', maxlength: 4000 },
     severity: { type: String, required: true, enum: ['mild', 'moderate', 'severe'] },
-    tags: [{ type: String, maxlength: 60 }],
+    tags: [{ type: String, maxlength: 700 }],
     language: { type: String, enum: ['en', 'bn'], default: 'en' },
     analysis: { type: analysisSchema, required: true }
   },
