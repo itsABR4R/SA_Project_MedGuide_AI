@@ -5,11 +5,11 @@ const { Schema } = mongoose;
 
 const conditionSchema = new Schema(
   {
-    name: { type: String, required: true, maxlength: 120 },
+    name: { type: String, required: true, maxlength: 700 },
     matchLevel: { type: String, required: true, enum: ['strong', 'possible', 'limited'] },
     matchPercentage: { type: Number, min: 20, max: 89, default: null },
     urgency: { type: String, required: true, enum: ['routine', 'soon', 'urgent'] },
-    matchedSymptoms: [{ type: String, maxlength: 80 }],
+    matchedSymptoms: [{ type: String, maxlength: 700 }],
     simpleExplanationPoints: [{ type: String, maxlength: 300 }],
     detailedExplanationPoints: [{ type: String, maxlength: 420 }],
     simpleExplanation: { type: String, default: '', maxlength: 600 },
